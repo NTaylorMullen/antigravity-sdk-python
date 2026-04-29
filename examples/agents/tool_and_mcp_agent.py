@@ -17,9 +17,11 @@
 import asyncio
 import logging
 import os
+import shutil
 import tempfile
+
 from google.antigravity.agent import Agent
-from google.antigravity.examples import example_policies
+from google.antigravity.hooks import policy
 
 
 def read_file_upside_down(path: str) -> str:
@@ -32,15 +34,16 @@ def read_file_upside_down(path: str) -> str:
 async def main():
   logging.basicConfig(level=logging.INFO)
 
-  # Find the MCP server binary relative to this script
-  current_dir = os.path.dirname(os.path.abspath(__file__))
-  mcp_server_path = os.path.abspath(
-      os.path.join(current_dir, "..", "mcp_server.par")
-  )
-
-  if not os.path.exists(mcp_server_path):
-    logging.warning("Failed to find mcp_server.par at %s", mcp_server_path)
-    mcp_server_path = None
+  # Find the MCP server binary.
+  mcp_server_path = shutil.which("mcp_server")
+  if not mcp_server_path:
+    # Try relative to this script (works in runfiles layout).
+    candidate = os.path.join(os.path.dirname(__file__), "..", "mcp_server")
+    if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+      mcp_server_path = candidate
+    else:
+      logging.warning("MCP server binary not found; skipping.")
+      mcp_server_path = None
 
   mcp_servers = []
   if mcp_server_path:
@@ -56,9 +59,9 @@ async def main():
           "You are a helpful assistant. Use your tools when needed."
       ),
       tools=[read_file_upside_down],
-      policies=[example_policies.BLOCK_RM_POLICY],
       mcp_servers=mcp_servers,
-      read_only=False,  # We want to allow tools
+      read_only=False,  # Enable all builtin tools (write + read)
+      policies=[policy.allow("*")],  # Auto-approve all tool calls
   ) as agent:
 
     print("\nChatting with agent...")

@@ -22,7 +22,7 @@ Probes the boundaries of LocalConnection lifecycle:
   2. Sequential conversations:  Can we call Conversation.create()
      multiple times on the same strategy, getting independent sessions?
 
-  3. Disconnect:  Does disconnect() cleanly kill the Go process?
+  3. Disconnect:  Does disconnect() cleanly kill the subprocess?
 
 To run:
   bazel run //examples:multi_conversation
@@ -150,7 +150,7 @@ async def sequential_conversations() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Scenario 3: Verify disconnect kills the Go process
+# Scenario 3: Verify disconnect kills the subprocess
 # ---------------------------------------------------------------------------
 async def disconnect_cleanup() -> None:
   """Checks that disconnect() terminates the subprocess.
@@ -177,7 +177,7 @@ async def disconnect_cleanup() -> None:
     assert isinstance(lc, local_connection.LocalConnection)
     process = lc._process  # pylint: disable=protected-access
     pid = process.pid
-    print(f"  Go process PID before disconnect: {pid}")
+    print(f"  Harness PID before disconnect: {pid}")
 
     returncode = process.poll()
     if returncode is not None:

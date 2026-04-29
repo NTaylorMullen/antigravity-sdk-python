@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Simple agent example using Tier 1 API."""
+"""Simple agent example using the high-level Agent API."""
 
 import asyncio
 import logging

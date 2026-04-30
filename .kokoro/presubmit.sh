@@ -29,7 +29,7 @@ echo "--- Installing package and test dependencies ---"
 pip install -e ".[dev]"
 
 echo "--- Running tests ---"
-python -m pytest tests/ -v --tb=short
+python -m pytest -v --tb=short
 
 echo "--- Running lint ---"
 python -m ruff check .

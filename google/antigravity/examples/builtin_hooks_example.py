@@ -28,7 +28,7 @@ Observing model responses:
   full step-by-step trajectory.
 
 To run:
-  bazel run //examples:builtin_hooks
+  python3 builtin_hooks_example.py
 """
 
 import asyncio

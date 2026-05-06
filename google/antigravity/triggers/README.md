@@ -163,5 +163,5 @@ Connection.
 ## Tests
 
 ```bash
-bazel test //triggers:all
+pytest triggers/
 ```

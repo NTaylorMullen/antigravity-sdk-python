@@ -30,7 +30,7 @@ For production token-by-token rendering, the delta pattern is simply:
           sys.stdout.write(step.content_delta)
 
 To run:
-  bazel run //examples:streaming_delta
+  python3 streaming_delta_example.py
 """
 
 import asyncio

@@ -25,7 +25,7 @@ Probes the boundaries of LocalConnection lifecycle:
   3. Disconnect:  Does disconnect() cleanly kill the subprocess?
 
 To run:
-  bazel run //examples:multi_conversation
+  python3 multi_conversation_example.py
 
 Criteria for correct script performance:
   1. The script exits cleanly with return code 0 (no unhandled exceptions).

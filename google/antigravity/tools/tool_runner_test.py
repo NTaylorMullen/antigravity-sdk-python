@@ -296,6 +296,8 @@ class ProcessToolCallsTest(absltest.TestCase):
     self.assertLen(results, 1)
     self.assertEqual(results[0].name, "nonexistent")
     self.assertIsNone(results[0].result)
+    self.assertIsNotNone(results[0].error)
+    assert results[0].error is not None
     self.assertIn("Unknown tool", results[0].error)
 
   def test_failing_tool_returns_error_result(self):

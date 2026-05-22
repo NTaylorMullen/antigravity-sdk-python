@@ -15,6 +15,7 @@
 """Tests for trigger helper factories."""
 
 import asyncio
+from typing import Any, Coroutine, cast
 import unittest
 from unittest import mock
 
@@ -42,7 +43,7 @@ class EveryTest(unittest.IsolatedAsyncioTestCase):
     trigger = helpers.every(0.01, cb)
     ctx = self._make_ctx()
 
-    task = asyncio.create_task(trigger(ctx))
+    task = asyncio.create_task(cast(Coroutine[Any, Any, Any], trigger(ctx)))
     await asyncio.sleep(0.05)
     task.cancel()
     with self.assertRaises(asyncio.CancelledError):

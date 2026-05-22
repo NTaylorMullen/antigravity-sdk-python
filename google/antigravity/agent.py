@@ -44,6 +44,8 @@ class Agent:
     """
     self._config = config.model_copy(deep=True)
     if self._config.response_schema:
+      # The response_schema is validated/stringified in AgentConfig.
+      assert isinstance(self._config.response_schema, str)
       self._config.capabilities.finish_tool_schema_json = (
           self._config.response_schema
       )

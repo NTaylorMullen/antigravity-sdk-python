@@ -21,6 +21,7 @@ and the AntigravityValidationError wrapper.
 import asyncio
 import pathlib
 import tempfile
+from typing import Any, Coroutine, cast
 import unittest
 from unittest import mock
 
@@ -87,7 +88,7 @@ class ToolCallTest(unittest.TestCase):
     Why: Forward compatibility — newer backends may add fields.
     How: Constructs a ToolCall with an unknown field and asserts it's absent.
     """
-    tc = types.ToolCall(name="tool", unknown_field="value")
+    tc = types.ToolCall(name="tool", **cast(Any, {"unknown_field": "value"}))
     self.assertFalse(hasattr(tc, "unknown_field"))
 
   def test_missing_name_raises(self):
@@ -98,7 +99,7 @@ class ToolCallTest(unittest.TestCase):
     How: Attempts construction without name and asserts ValidationError.
     """
     with self.assertRaises(pydantic.ValidationError):
-      types.ToolCall()
+      cast(Any, types.ToolCall)()
 
 
 class ToolResultTest(unittest.TestCase):
@@ -161,7 +162,7 @@ class ToolResultTest(unittest.TestCase):
     Why: Consistent extra field handling across all models.
     How: Passes an unknown field and asserts it's not present.
     """
-    tr = types.ToolResult(name="tool", unknown="value")
+    tr = types.ToolResult(name="tool", **cast(Any, {"unknown": "value"}))
     self.assertFalse(hasattr(tr, "unknown"))
 
 
@@ -210,7 +211,7 @@ class StepTest(unittest.TestCase):
 
   def test_extra_fields_allowed(self):
     """Verifies extra='allow' on Step as per Karmel's model."""
-    step = types.Step(id="1", future_field="value")
+    step = types.Step(id="1", **cast(Any, {"future_field": "value"}))
     self.assertTrue(hasattr(step, "future_field"))
     self.assertEqual(getattr(step, "future_field"), "value")
 
@@ -219,7 +220,7 @@ class StepTest(unittest.TestCase):
     step = types.Step(
         id="5",
         type=types.StepType.TOOL_CALL,
-        tool_calls=[{"name": "my_tool", "args": {"x": 1}}],
+        tool_calls=cast(Any, [{"name": "my_tool", "args": {"x": 1}}]),
     )
     self.assertEqual(len(step.tool_calls), 1)
     self.assertEqual(step.tool_calls[0].name, "my_tool")
@@ -344,7 +345,7 @@ class QuestionHookResultTest(unittest.TestCase):
     How: Attempts construction without responses.
     """
     with self.assertRaises(pydantic.ValidationError):
-      types.QuestionHookResult()
+      cast(Any, types.QuestionHookResult)()
 
 
 class AntigravityValidationErrorTest(unittest.TestCase):
@@ -371,11 +372,12 @@ class AntigravityValidationErrorTest(unittest.TestCase):
     """
     err = None
     try:
-      types.ToolCall()  # Missing required 'name' field.
+      cast(Any, types.ToolCall)()  # Missing required 'name' field.
     except pydantic.ValidationError as e:
       err = e
 
     self.assertIsNotNone(err, "Expected ValidationError was not raised.")
+    assert err is not None
     wrapped = types.AntigravityValidationError.from_pydantic(err)
     self.assertIn("name", wrapped.message)
     self.assertGreater(len(wrapped.errors), 0)
@@ -496,19 +498,19 @@ class GeminiConfigTest(unittest.TestCase):
 
   def test_string_coercion_in_model_config(self):
     """Verifies that ModelConfig coerces strings to ModelEntry."""
-    config = types.ModelConfig(default="gemini-2.5-pro")
+    config = types.ModelConfig(default=cast(Any, "gemini-2.5-pro"))
     self.assertIsInstance(config.default, types.ModelEntry)
     self.assertEqual(config.default.name, "gemini-2.5-pro")
 
   def test_thinking_level_from_string(self):
     """Verifies that thinking_level accepts raw string values."""
-    gen = types.GenerationConfig(thinking_level="high")
+    gen = types.GenerationConfig(thinking_level=cast(Any, "high"))
     self.assertEqual(gen.thinking_level, types.ThinkingLevel.HIGH)
 
   def test_thinking_level_invalid_string(self):
     """Verifies that invalid thinking_level strings raise ValidationError."""
     with self.assertRaises(pydantic.ValidationError):
-      types.GenerationConfig(thinking_level="turbo")
+      types.GenerationConfig(thinking_level=cast(Any, "turbo"))
 
   def test_per_model_api_key(self):
     """Verifies per-model API key overrides."""
@@ -529,7 +531,7 @@ class GeminiConfigTest(unittest.TestCase):
 
   def test_string_coercion_image_generation_slot(self):
     """Verifies that BeforeValidator coerces string to ModelEntry for image_generation."""
-    config = types.ModelConfig(image_generation="custom-image-model")
+    config = types.ModelConfig(image_generation=cast(Any, "custom-image-model"))
     self.assertIsInstance(config.image_generation, types.ModelEntry)
     self.assertEqual(config.image_generation.name, "custom-image-model")
 
@@ -706,6 +708,8 @@ class CapabilitiesConfigTest(unittest.TestCase):
         ]
     )
     self.assertIsNone(config.enabled_tools)
+    self.assertIsNotNone(config.disabled_tools)
+    assert config.disabled_tools is not None
     self.assertEqual(len(config.disabled_tools), 1)
 
   def test_mutually_exclusive_raises(self):
@@ -1173,7 +1177,7 @@ class ChatResponseStreamTest(unittest.IsolatedAsyncioTestCase):
         self.calls = 0
         self.second_call = asyncio.Event()
 
-      async def acquire(self) -> bool:
+      async def acquire(self) -> Any:
         self.calls += 1
         if self.calls == 2:
           self.second_call.set()
@@ -1198,16 +1202,16 @@ class ChatResponseStreamTest(unittest.IsolatedAsyncioTestCase):
     cursor_a = response.chunks
     cursor_b = response.chunks
 
-    task_a = asyncio.create_task(cursor_a.__anext__())
+    task_a = asyncio.create_task(cast(Coroutine[Any, Any, Any], cursor_a.__anext__()))
     await event_a_pulling.wait()
 
-    task_b = asyncio.create_task(cursor_b.__anext__())
+    task_b = asyncio.create_task(cast(Coroutine[Any, Any, Any], cursor_b.__anext__()))
     await instrumented_lock.second_call.wait()
 
     event_b_waiting.set()
 
-    chunk_a = await task_a
-    chunk_b = await task_b
+    chunk_a = cast(types.Text, await task_a)
+    chunk_b = cast(types.Text, await task_b)
 
     self.assertEqual(chunk_a, chunk_b)
     self.assertEqual(chunk_a.text, "chunk1")
@@ -1264,6 +1268,7 @@ class ChatResponseStreamTest(unittest.IsolatedAsyncioTestCase):
     await response.resolve()
     usage = response.usage_metadata
     self.assertIsNotNone(usage)
+    assert usage is not None
     self.assertEqual(usage.prompt_token_count, 10)
     self.assertEqual(usage.candidates_token_count, 20)
     self.assertEqual(usage.total_token_count, 30)

@@ -16,6 +16,7 @@
 
 import contextlib
 import os
+from typing import Any, cast
 import unittest
 from unittest import mock
 
@@ -271,9 +272,9 @@ class AgentTest(unittest.IsolatedAsyncioTestCase):
     mock_strategy_class.return_value = mock.MagicMock(stop=mock.AsyncMock())
     config = local_connection.LocalAgentConfig(
         system_instructions="test",
-        mcp_servers=[
-            {"type": "stdio", "command": "node", "args": ["index.js"]}
-        ],
+        mcp_servers=cast(
+            Any, [{"type": "stdio", "command": "node", "args": ["index.js"]}]
+        ),
         policies=[],
         workspaces=[],
     )
@@ -297,9 +298,9 @@ class AgentTest(unittest.IsolatedAsyncioTestCase):
     mock_strategy_class.return_value = mock.MagicMock(stop=mock.AsyncMock())
     config = local_connection.LocalAgentConfig(
         system_instructions="test",
-        mcp_servers=[
-            {"type": "stdio", "command": "node", "args": ["index.js"]}
-        ],
+        mcp_servers=cast(
+            Any, [{"type": "stdio", "command": "node", "args": ["index.js"]}]
+        ),
         policies=[policy.deny("*")],
     )
     async with agent.Agent(config):
@@ -327,9 +328,9 @@ class AgentTest(unittest.IsolatedAsyncioTestCase):
 
     config = local_connection.LocalAgentConfig(
         system_instructions="test",
-        mcp_servers=[
-            {"type": "stdio", "command": "node", "args": ["index.js"]}
-        ],
+        mcp_servers=cast(
+            Any, [{"type": "stdio", "command": "node", "args": ["index.js"]}]
+        ),
         hooks=[MyPreToolCallDecideHook()],
     )
     async with agent.Agent(config):
@@ -361,12 +362,14 @@ class AgentTest(unittest.IsolatedAsyncioTestCase):
         system_instructions="test", hooks=[my_hook]
     )
     async with agent.Agent(config) as ag:
+      assert ag._hook_runner is not None
       self.assertIn(my_hook, ag._hook_runner.pre_turn_hooks)
 
     # Test dynamic registration
     config = local_connection.LocalAgentConfig(system_instructions="test")
     async with agent.Agent(config) as ag:
       ag.register_hook(my_hook)
+      assert ag._hook_runner is not None
       self.assertIn(my_hook, ag._hook_runner.pre_turn_hooks)
 
   @mock.patch(
@@ -469,6 +472,7 @@ class AgentTest(unittest.IsolatedAsyncioTestCase):
     self.assertIn(my_hook, ag._pending_hooks)
 
     async with ag:
+      assert ag._hook_runner is not None
       self.assertIn(my_hook, ag._hook_runner.pre_turn_hooks)
       self.assertEqual(len(ag._pending_hooks), 0)
 
@@ -518,6 +522,7 @@ class AgentTest(unittest.IsolatedAsyncioTestCase):
         policies=[my_policy],
     )
     async with agent.Agent(config) as ag:
+      assert ag._hook_runner is not None
       self.assertEqual(len(ag._hook_runner.pre_tool_call_decide_hooks), 1)
 
   @mock.patch(
@@ -563,7 +568,7 @@ class AgentTest(unittest.IsolatedAsyncioTestCase):
     mock_strategy_instance.stop = mock.AsyncMock()
     mock_strategy_class.return_value = mock_strategy_instance
 
-    mcp_servers = [{"type": "unknown_type"}]
+    mcp_servers = cast(Any, [{"type": "unknown_type"}])
 
     with self.assertRaises(ValueError):
       config = local_connection.LocalAgentConfig(

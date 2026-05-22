@@ -15,6 +15,7 @@
 """Tests for TriggerContext and delivery modes."""
 
 import unittest
+from typing import Any, cast
 from unittest import mock
 
 from google.antigravity.connections import connection
@@ -64,7 +65,7 @@ class TriggerDecoratorTest(unittest.TestCase):
       del ctx
 
     with self.assertRaises(ValueError) as cm:
-      triggers.trigger(sync_trigger)
+      triggers.trigger(cast(Any, sync_trigger))
     self.assertEqual(str(cm.exception), "Trigger must be an async function")
 
   def test_wrong_signature_raises_value_error(self):
@@ -72,7 +73,7 @@ class TriggerDecoratorTest(unittest.TestCase):
       pass
 
     with self.assertRaises(ValueError) as cm:
-      triggers.trigger(no_arg_trigger)
+      triggers.trigger(cast(Any, no_arg_trigger))
     self.assertEqual(
         str(cm.exception), "Trigger must accept exactly one parameter"
     )
@@ -83,7 +84,7 @@ class TriggerDecoratorTest(unittest.TestCase):
       del ctx, extra
 
     with self.assertRaises(ValueError) as cm:
-      triggers.trigger(multi_arg_trigger)
+      triggers.trigger(cast(Any, multi_arg_trigger))
     self.assertEqual(
         str(cm.exception), "Trigger must accept exactly one parameter"
     )

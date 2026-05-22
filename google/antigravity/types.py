@@ -24,7 +24,7 @@ import asyncio
 import enum
 import mimetypes
 import pathlib
-from typing import Annotated, Any, AsyncIterator, Callable, Literal
+from typing import Annotated, Any, AsyncIterator, Callable, Literal, cast
 
 import pydantic
 
@@ -701,7 +701,7 @@ class AntigravityValidationError(Exception):
     Returns:
       An AntigravityValidationError wrapping the Pydantic error.
     """
-    return cls(message=str(exc), errors=exc.errors())
+    return cls(message=str(exc), errors=cast(Any, exc.errors()))
 
 
 class TriggerDelivery(str, enum.Enum):
@@ -1100,4 +1100,7 @@ def from_file(
         f"Unsupported MIME type: '{mime_guess}'. "
         f"Supported file formats in the SDK are: {sorted(_MIME_TO_MEDIA_CLASS)}"
     )
-  return media_cls(data=data, mime_type=mime_guess, description=description)  # pytype: disable=bad-return-type
+  return cast(
+      Image | Document | Audio | Video,
+      media_cls(data=data, mime_type=mime_guess, description=description),
+  )

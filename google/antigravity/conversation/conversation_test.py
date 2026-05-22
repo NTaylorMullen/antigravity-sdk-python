@@ -19,6 +19,7 @@ state introspection, and clean delegation to the Connection ABC.
 """
 
 import unittest
+from typing import Any, cast
 from unittest import mock
 
 from google.antigravity import types
@@ -933,6 +934,7 @@ class ConversationUsageMetadataTest(unittest.IsolatedAsyncioTestCase):
     await result.resolve()
 
     self.assertIsNotNone(result.usage_metadata)
+    assert result.usage_metadata is not None
     self.assertEqual(result.usage_metadata.prompt_token_count, 300)
     self.assertEqual(result.usage_metadata.candidates_token_count, 80)
     self.assertEqual(result.usage_metadata.total_token_count, 380)

@@ -15,16 +15,18 @@
 """Validates default implementations in the Connection abstract base class."""
 
 import unittest
+from typing import Any, AsyncIterator, cast
+from google.antigravity import types
 from google.antigravity.connections import connection
 
 
 class DummyConnection(connection.Connection):
 
-  async def send(self, prompt: str, **kwargs) -> None:
+  async def send(self, prompt: types.Content | None, **kwargs: Any) -> None:
     pass
 
-  def receive_steps(self):
-    pass
+  def receive_steps(self) -> AsyncIterator[types.Step]:
+    raise NotImplementedError()
 
   async def disconnect(self) -> None:
     pass
@@ -53,20 +55,22 @@ class AgentConfigTest(unittest.TestCase):
 
   def test_cannot_instantiate_abc(self):
     with self.assertRaises(TypeError):
-      connection.AgentConfig(system_instructions="test")
+      cast(Any, connection.AgentConfig)(system_instructions="test")
 
   def test_subclass_must_implement_create_strategy(self):
     class IncompleteConfig(connection.AgentConfig):
       pass
 
     with self.assertRaises(TypeError):
-      IncompleteConfig(system_instructions="test")
+      cast(Any, IncompleteConfig)(system_instructions="test")
 
   def test_concrete_subclass_works(self):
     class ConcreteConfig(connection.AgentConfig):
 
-      def create_strategy(self, *, tool_runner, hook_runner):
-        return None
+      def create_strategy(
+          self, *, tool_runner: Any, hook_runner: Any
+      ) -> connection.ConnectionStrategy:
+        return cast(Any, None)
 
     config = ConcreteConfig(system_instructions="test")
     self.assertEqual(config.system_instructions, "test")
@@ -74,8 +78,10 @@ class AgentConfigTest(unittest.TestCase):
   def test_response_schema_valid_json_string(self):
     class ConcreteConfig(connection.AgentConfig):
 
-      def create_strategy(self, *, tool_runner, hook_runner):
-        return None
+      def create_strategy(
+          self, *, tool_runner: Any, hook_runner: Any
+      ) -> connection.ConnectionStrategy:
+        return cast(Any, None)
 
     config = ConcreteConfig(response_schema='{"type": "object"}')
     self.assertEqual(config.response_schema, '{"type": "object"}')
@@ -83,8 +89,10 @@ class AgentConfigTest(unittest.TestCase):
   def test_response_schema_invalid_json_raises(self):
     class ConcreteConfig(connection.AgentConfig):
 
-      def create_strategy(self, *, tool_runner, hook_runner):
-        return None
+      def create_strategy(
+          self, *, tool_runner: Any, hook_runner: Any
+      ) -> connection.ConnectionStrategy:
+        return cast(Any, None)
 
     with self.assertRaises(ValueError):
       ConcreteConfig(response_schema="not valid json {{{")
@@ -92,11 +100,13 @@ class AgentConfigTest(unittest.TestCase):
   def test_response_schema_unsupported_type_raises(self):
     class ConcreteConfig(connection.AgentConfig):
 
-      def create_strategy(self, *, tool_runner, hook_runner):
-        return None
+      def create_strategy(
+          self, *, tool_runner: Any, hook_runner: Any
+      ) -> connection.ConnectionStrategy:
+        return cast(Any, None)
 
     with self.assertRaises(ValueError):
-      ConcreteConfig(response_schema=42)
+      ConcreteConfig(response_schema=cast(Any, 42))
 
 
 if __name__ == "__main__":

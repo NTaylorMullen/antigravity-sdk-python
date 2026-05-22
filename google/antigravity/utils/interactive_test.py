@@ -300,8 +300,10 @@ class UpgradeToInteractiveConfirmationTest(unittest.IsolatedAsyncioTestCase):
 
     config = local_connection.LocalAgentConfig(system_instructions="test")
     async with agent.Agent(config) as ag:
+      assert ag._hook_runner is not None
       hooks_before = len(ag._hook_runner._pre_tool_call_decide_hooks)
       interactive._upgrade_to_interactive_confirmation(ag)
+      assert ag._hook_runner is not None
       hooks_after = len(ag._hook_runner._pre_tool_call_decide_hooks)
       self.assertEqual(hooks_before, hooks_after,
                        "Upgrade should replace the hook, not append a new one")
